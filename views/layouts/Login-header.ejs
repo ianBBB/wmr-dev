@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+</head>
+
+<body>
+    <div class="Login-text">
+        <h1>
+            <%= title %> Page</h1>
+        <div>
+            <p>This is a development system. Select the role you want to use in this session.</p>
+        </div>
+
+
+        <form action="/Login/SetUser" method="POST" name="form1">
+
+            <div float:left; clear:left>
+                <table width='80%' border=0>
+
+
+                    <% if (data) { %>
+                        <% data.forEach(function(user,i){ %>
+                            <td>
+                                <div> <button type="submit" id="Login_btn_<%= i %>" class="msgBtn" name="person_selected" value="<%= i %>"><%= user %></button></div>
+                            </td>
+                            <% }) %>
+                        <% } %>
+                </table>
+
+                <input type="hidden" name="_method" value="POST" />
+
+            </div>
+        </form>
+        <!--            <div align="right" ><button type="submit" id="Login_btn_Ying" Name="Login_btn_Ying" value="e52483" form="form1">Use Yings login</button> </div>-->
+
+    </div>

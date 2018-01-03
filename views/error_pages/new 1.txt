@@ -1,0 +1,7 @@
+// get the question data in the same format as part data with '0' as the partnumber. extra fields are in numbered format.
+select `ModuleID`,`QuestionNumber`,`SectionNumber`, 0 as PartNumber, `Question` as field1,`NoteToMarker` as fields2, 0 as field3, 0 as field4
+from question_config;
+
+// same for part data.
+SELECT `ModuleID`,`QuestionNumber`,`SectionNumber`,`PartNumber`,`PartQuestion` as field1,`Marks` as field2, `StartWithFullMarks` as field3,`PartNoteToMarker` as fields4
+FROM `part_config`

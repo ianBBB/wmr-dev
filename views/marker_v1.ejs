@@ -1,0 +1,652 @@
+<!--
+including header content which is common for all pages
+-->
+<%- include layouts/header-gen.ejs %>
+
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <!--This is a test div for displaying stuff.    -->
+        <div id="result" style="display: none;"></div>
+
+
+
+        <!-- select a subject-->
+        <div ng-show="subject_show" style="float:left;padding-right:40px">
+            <p>Select Subject</p>
+
+            <form action="/marker/getAssessmentList" method="POST">
+
+                <select id="M_subSelect" name="M_subject_name" ng-model="M_Subject" onChange="record_selection(M_subSelect,'M_idxSubSelected');" ng-options="Subject for Subject in SubjectList">
+<!--                    /'M_subSelect',M_subSelect.selectedIndex-->
+                    <option id="subjectSelectMessage" value="" >No list.</option>
+
+                </select>
+
+                <span><input type="submit"></span>
+            </form>
+        </div>
+
+
+        <!-- select an assessment-->
+        <div ng-show="assessment" style="float:left;padding-right:40px">
+            <p>Select Assessment</p>
+            <form action="/marker/getStudentList" method="POST">
+
+                <select id="M_assSelect" name="M_assessment_name" ng-model="M_assesssment" onChange="record_selection(M_assSelect,'M_idxAssSelected')" ng-options="Assessment for Assessment in AssessmentList">
+                    <option id="assessmentSelectMessage" value="" >Choose</option>
+                </select>
+                <span><input type="submit"></span>
+            </form>
+        </div>
+
+
+        <!-- select an student-->
+        <div ng-show="student" style="float:left;padding-right:40px">
+            <p>Select Student</p>
+            <form action="/marker/getStudentMarks" method="POST">
+
+
+                <select id="M_studSelect" name="M_student_number" ng-model="M_student" onChange="record_selection(M_studSelect,'M_idxStudSelected')" ng-options="Student for Student in StudentList">
+                    <option id="studentSelectMessage" value="" selected="selected">Choose</option>
+                </select>
+                <span><input type="submit"></span>
+            </form>
+        </div>
+
+
+        <!--         add in a form submission button-->
+        <div ng-show="student" style="float:left;padding-right:40px">
+            <form action="/marker/submitMarks" method="POST" id="marksSubmitForm">
+
+                <span><input type="submit">Submit Marks</span>
+            </form>
+        </div>
+
+
+
+        <!-- the marking form-->
+        <div id="my_marking_form" style="display:none">
+            <style>
+                table,
+                th,
+                td {
+                    border: 1px solid black;
+                    border-collapse: collapse;
+                }
+
+                th,
+                td {
+                    padding: 5px;
+                }
+
+            </style>
+            <table width="100%" style="margin: 0px">
+
+                <tr>
+                    <td>
+                        <p>This is the header</p>
+                        <p>with information about the student and the assessment being marked</p>
+                    </td>
+
+                </tr>
+                <tr>
+                    <table width="100%" style="margin: 0px">
+
+                        <td width="30">All Question status
+                        </td>
+                        <td>
+                            <div style="overflow-y: scroll; height:400px;">
+                                <table id="marking_area">
+                                </table>
+                            </div>
+
+                        </td>
+                    </table>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+
+
+
+
+
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('myCtrl', function($scope) {
+
+
+            var stage = <%- Stage %>;
+            var sentSubList = <%- SubjectList %>;
+            var sentAssList = <%- AssessmentList %>;
+            var sentStudList = <%- StudentList %>;
+            var sentMarkingForm = <%- MarkingForm %>;
+            var sentMarks = <%- Marks %>;
+            var sentComments = <%- Comments %>;
+            var sentResponses = <%- Responses %>;
+            var Parts_marking_config_data = [];
+
+
+
+
+            switch (stage) {
+                case (1):
+                    // check if we have been given a new subject list.
+                    if (sentSubList === 0) {
+                        // use existing subject list
+                        $scope.SubjectList = JSON.parse(sessionStorage.getItem("subjectList"));
+                    } else {
+
+                        // use the new list sent from the server and store it locally for future use.
+                        sessionStorage.subjectList = JSON.stringify(sentSubList);
+                        $scope.SubjectList = JSON.parse(sessionStorage.getItem("subjectList")).map(function(el) {
+                            return el.SubjectID;
+                        });
+                    }
+
+                    // Check to see if there are any items to choose from in the list and adjust the message in the select box accordingly.
+                    if (Object.keys(sentSubList).length < 1) {
+                        document.getElementById("subjectSelectMessage").text = "No Subjects";
+                    } else {
+                        document.getElementById("subjectSelectMessage").text = "Choose";
+                    }
+
+
+                    // turn on the appropriate parts of the form
+                    $scope.subject_show = true;
+                    $scope.assessment = false;
+                    $scope.student = false;
+                    $scope.marking_form = false;
+                    break;
+
+                case (2):
+                    // set up the subject display
+
+                    $scope.SubjectList = JSON.parse(sessionStorage.getItem("subjectList")).map(function(el) {
+                        return el.SubjectID;
+                    });
+                    $scope.M_Subject = $scope.SubjectList[sessionStorage.getItem("M_idxSubSelected")];
+
+                    // save the sent list of assignments.
+                    sessionStorage.assessmentList = JSON.stringify(sentAssList);
+
+                    // populate the dropdown list and set the default value
+                    $scope.AssessmentList = JSON.parse(sessionStorage.getItem("assessmentList")).map(function(el) {
+                        return el.ModuleID;
+                    });
+
+                    // Check to see if there are any items to choose from in the list and adjust the message in the select box accordingly.
+                    if (Object.keys(sentAssList).length < 1) {
+                        document.getElementById("assessmentSelectMessage").text = "No Assessments";
+                    } else {
+                        document.getElementById("assessmentSelectMessage").text = "Choose";
+                    }
+
+
+                    var sub_selector = document.getElementById("M_subSelect");
+                    var t1 = sub_selector.selectedIndex;
+                    sub_selector.selectedIndex = 3;
+                    //sessionStorage.getItem("M_subSelect");
+
+
+                    // set up what should be seen
+                    $scope.subject_show = true;
+                    $scope.assessment = true;
+                    $scope.student = false;
+                    $scope.marking_form = false;
+
+
+                    break;
+
+                case (3):
+                    // set up the subject display
+                    {
+                        $scope.SubjectList = JSON.parse(sessionStorage.getItem("subjectList")).map(function(el) {
+                            return el.SubjectID;
+                        });
+                        $scope.M_Subject = $scope.SubjectList[sessionStorage.getItem("M_idxSubSelected")];
+
+                        // set up the assignment display
+                        $scope.AssessmentList = JSON.parse(sessionStorage.getItem("assessmentList")).map(function(el) {
+                            return el.ModuleID;
+                        });
+
+                        $scope.M_assesssment = $scope.AssessmentList[sessionStorage.getItem("M_idxAssSelected")];
+
+
+
+                        // now save the student list and display set up 
+                        sessionStorage.studentList = JSON.stringify(sentStudList);
+                        sessionStorage.markingForm = JSON.stringify(sentMarkingForm);
+
+                        //load data into scope vars
+                        $scope.StudentList = JSON.parse(sessionStorage.getItem("studentList")).map(function(el) {
+                            return el.StudentID;
+                        });
+                        $scope.MarkingForm = JSON.parse(sessionStorage.getItem("markingForm"));
+
+
+                        // Check to see if there are any items to choose from in the list and adjust the message in the select box accordingly.
+                        if (Object.keys(sentStudList).length < 1) {
+                            document.getElementById("studentSelectMessage").text = "No Students";
+                        } else {
+                            document.getElementById("studentSelectMessage").text = "Choose";
+                        }
+
+
+                        //                    document.getElementById("result").innerHTML = $scope.MarkingForm[0].ModuleID;
+                        //                    debugger;
+
+                        $scope.subject_show = true;
+                        $scope.assessment = true;
+                        $scope.student = true;
+                        $scope.marking_form = false;
+
+
+
+                        //                    document.getElementById("result").innerHTML =Object.keys(sentMarkingForm[0]) ;
+                        break;
+                    }
+
+
+                case (4):
+                    // set up the subject display
+                    {
+                        $scope.SubjectList = JSON.parse(sessionStorage.getItem("subjectList")).map(function(el) {
+                            return el.SubjectID;
+                        });
+                        $scope.M_Subject = $scope.SubjectList[sessionStorage.getItem("M_idxSubSelected")];
+
+                        // set up the assignment display
+                        $scope.AssessmentList = JSON.parse(sessionStorage.getItem("assessmentList")).map(function(el) {
+                            return el.ModuleID;
+                        });
+                        $scope.M_assesssment = $scope.AssessmentList[sessionStorage.getItem("M_idxAssSelected")];
+
+                        //Set up Student display
+                        $scope.StudentList = JSON.parse(sessionStorage.getItem("studentList")).map(function(el) {
+                            return el.StudentID;
+                        });
+                        $scope.M_student = $scope.StudentList[sessionStorage.getItem("M_idxStudSelected")];
+
+                        // save the marking form to local storage
+                        $scope.MarkingForm = JSON.parse(sessionStorage.getItem("markingForm"));
+
+                        // save marks and marker comments to local storage
+                        debugger;
+                        sessionStorage.marks = JSON.stringify(sentMarks);
+                        sessionStorage.comments = JSON.stringify(sentComments);
+                        sessionStorage.responses = JSON.stringify(sentResponses);
+
+                        // save the marks to local storage
+                        $scope.Marks = JSON.parse(sessionStorage.getItem("marks"));
+
+                        turn_on_marking_form();
+
+                        $scope.subject_show = true;
+                        $scope.assessment = true;
+                        $scope.student = true;
+                        $scope.marking_form = true;
+
+                        break;
+                    }
+
+            }
+
+        })
+
+        //This function saves a selectors index value for use in the next screen
+        function record_selection(e_id, index_storage_name) {
+
+            sessionStorage.setItem(index_storage_name, (e_id.selectedIndex - 1));
+        }
+
+
+        //        this function turns on the marking form.
+        function turn_on_marking_form() {
+            var last_part_displayed = "";
+            document.getElementById('my_marking_form').style.display = 'block';
+            var form_config = JSON.parse(sessionStorage.getItem("markingForm"));
+
+            // now add all the marking content
+            for (var i = 0, len = form_config.length; i < len; i++) {
+                document.getElementById("result").innerHTML = form_config[i].PartNumber;
+
+                // test to see what is in this row (question, part, comment, etc)
+                if (form_config[i].PartNumber == 0) {
+                    // this is a question row. put it in the display
+                    display_a_question(form_config[i]);
+                } else if (form_config[i].CommentNumber == 0) {
+                    // this is a part row. put it in the display
+                    display_a_part(form_config[i]);
+                } else if (form_config[i].CommentNumber == 99) {
+                    // this is a response row. put it in the display
+                    display_a_response(form_config[i]);
+                } else {
+                    // this is a comment row. put it in the display
+                    display_a_comment(form_config[i]);
+                }
+            }
+
+
+            //            // now add all the marks
+            //            var marks = JSON.parse(sessionStorage.getItem("marks"));
+            //            var id_text = "";
+            //            var this_part = {};
+            //            for (var i = 0, len = marks.length; i < len; i++) {
+            //                this_part = marks[i];
+            //                id_text = "QP" + this_part.SectionNumber + "_" + this_part.QuestionNumber + "_" + this_part.PartNumber + "_" + "0" + "_mark";
+            //                document.getElementById(id_text).value = this_part.Marks;
+            //            }
+
+
+            //            // now add all the Comment ticks
+            //            var comments = JSON.parse(sessionStorage.getItem("comments"));
+            //            var id_text = "";
+            //            var this_part = {};
+            //            for (var i = 0, len = comments.length; i < len; i++) {
+            //                comment_data = comments[i];
+            //                id_text = "QP" + comment_data.SectionNumber + "_" + comment_data.QuestionNumber + "_" + comment_data.PartNumber + "_" + comment_data.CommentNumber + "_comment_check_box";
+            //                document.getElementById(id_text).checked = true;
+            //            }
+
+            //            // now add all the responses.
+            //            var responses = JSON.parse(sessionStorage.getItem("responses"));
+            //            var id_text = "";
+            //            var this_part = {};
+            //            for (var i = 0, len = responses.length; i < len; i++) {
+            //                this_part = responses[i];
+            //                id_text = "QP" + this_part.SectionNumber + "_" + this_part.QuestionNumber + "_" + this_part.PartNumber + "_" + "99" + "_response_textbox";
+            //                document.getElementById(id_text).value = this_part.Response;
+            //            }
+
+        }
+
+
+        function test_alert() {
+            alert('test1');
+        }
+
+        // takes data for a questions and builds it in the form
+        function display_a_question(question_data) {
+
+            if (question_data.QuestionNumber > 1) {
+                add_H_bar();
+            }
+
+            // first create a row then add data to it
+            // first the question number.
+            var row_part = document.createElement("tr");
+            var Qno_row_part = document.createElement("td");
+            var Qno_row_text = document.createTextNode("Q " + question_data.QuestionNumber);
+            Qno_row_part.appendChild(Qno_row_text);
+            Qno_row_part.setAttribute("width", "40");
+            row_part.appendChild(Qno_row_part);
+
+
+            //put in question.
+            var Q_row_part = document.createElement("td");
+            Q_row_part.setAttribute("colSpan", "2");
+            var Q_row_text = document.createElement("div");
+            Q_row_text.style = "float:left;padding-left:10px";
+            Q_row_text.innerHTML = question_data.field1;
+            row_part.appendChild(Q_row_text);
+
+
+            // add question row to doc
+            var element = document.getElementById("marking_area");
+            element.appendChild(row_part);
+
+            add_H_bar();
+        }
+
+        function display_a_part(part_data) {
+            // takes a data for a part and builds it in the form
+
+            var row_part = document.createElement("tr");
+
+            // add the part number
+            var Pno_col = document.createElement("td");
+            var Pno_col_text = document.createTextNode("P " + part_data.PartNumber);
+            Pno_col.appendChild(Pno_col_text);
+            row_part.appendChild(Pno_col);
+
+            //put mark box in the next column of the row.
+            var P_col_Q = document.createElement("td");
+            // add the marking box
+            var P_col_mark_div = document.createElement("div");
+            P_col_mark_div.style = "float:left;padding-right:10px";
+            var P_col_mark_tb = document.createElement("input");
+            P_col_mark_tb.type = "text";
+            P_col_mark_tb.style.width = 40;
+            P_col_mark_tb.style.padding = 3;
+            P_col_mark_tb.style.color = "light green";
+            var Part_ID = "QP" + part_data.SectionNumber + "_" + part_data.QuestionNumber + "_" + part_data.PartNumber + "_0";
+            var Part_config_record = JSON.parse(sessionStorage.getItem("marks")).find(x => x.id == Part_ID);
+            P_col_mark_tb.value = parseFloat(Part_config_record.Marks);
+            P_col_mark_tb.onchange = function() {
+                check_limits(this)
+            };
+
+            P_col_mark_tb.id = Part_ID + "_mark";
+            P_col_mark_tb.name = Part_ID;
+            P_col_mark_tb.form = "";
+            P_col_mark_div.appendChild(P_col_mark_tb);
+            P_col_Q.appendChild(P_col_mark_div);
+
+            //put in question.  
+            var P_col_Q_text_div = document.createElement("div");
+            P_col_Q_text_div.style = "float:left;padding-right:10px";
+            P_col_Q_text_div.innerHTML = part_data.field1;
+            P_col_Q.appendChild(P_col_Q_text_div);
+            row_part.appendChild(P_col_Q);
+
+
+            // add part row to doc
+            var element = document.getElementById("marking_area");
+            element.appendChild(row_part);
+
+        }
+
+        // takes a data for a part and builds it in the form        
+        function display_a_comment(comment_data) {
+
+            var row_part = document.createElement("tr");
+
+            // space 
+            var Cno_row_part = document.createElement("td");
+            var Cno_row_text = document.createElement("div");
+            Cno_row_text.style.padding = 3;
+            Cno_row_part.appendChild(Cno_row_text);
+            row_part.appendChild(Cno_row_part);
+
+            // add a check box.
+            var C_col_comment = document.createElement("td");
+            var C_col_check_button_div = document.createElement("div");
+            C_col_check_button_div.style = "float:left;padding-right:10px";
+            var C_col_check_box_btn = document.createElement("input");
+            C_col_check_box_btn.type = "checkbox";
+            C_col_check_box_btn.style = "height:20px;width:20px";
+            var Comment_ID = "QP" + comment_data.SectionNumber + "_" + comment_data.QuestionNumber + "_" + comment_data.PartNumber + "_" + comment_data.CommentNumber;
+            C_col_check_box_btn.id = Comment_ID + "_comment_check_box";
+            C_col_check_box_btn.value = parseFloat(comment_data.field2);
+            C_col_check_box_btn.name = Comment_ID;
+
+            var is_ticked = JSON.parse(sessionStorage.getItem("comments")).find(x => x.id == Comment_ID);
+            if (is_ticked) {
+                C_col_check_box_btn.checked = true;
+            }
+            C_col_check_box_btn.onchange = function() {
+                Comment_button_clicked(this)
+            };
+
+
+            C_col_check_button_div.appendChild(C_col_check_box_btn);
+            C_col_comment.appendChild(C_col_check_button_div);
+
+            //put in comment text.          
+            var C_col_text = document.createElement("div");
+            C_col_text.style = "float:left";
+            C_col_text.innerHTML = comment_data.field1;
+            C_col_comment.appendChild(C_col_text);
+            row_part.appendChild(C_col_comment);
+
+
+
+            // add a line to the display
+            var element = document.getElementById("marking_area");
+            element.appendChild(row_part);
+        }
+
+        // takes a data for this response and builds it in the form
+        function display_a_response(response_data) {
+            var row_part = document.createElement("tr");
+            // space 
+            var Rno_row_part = document.createElement("td");
+            var Rno_row_div = document.createElement("div");
+            Rno_row_div.style.padding = 3;
+            Rno_row_part.appendChild(Rno_row_div);
+            row_part.appendChild(Rno_row_part);
+
+            // add a textbox.
+            var Resp_col_resp = document.createElement("td");
+            var Resp_col_div = document.createElement("div");
+            Resp_col_div.style = "padding-right:10px";
+            Resp_col_div.innerHTML = "Marker’s remarks (optional):<br>";
+
+            var Resp_col_tb = document.createElement("textarea");
+            Resp_col_tb.rows = "5";
+            Resp_col_tb.cols = "60";
+            var Resp_ID = "QP" + response_data.SectionNumber + "_" + response_data.QuestionNumber + "_" + response_data.PartNumber + "_" + response_data.CommentNumber;
+            var has_Response = JSON.parse(sessionStorage.getItem("responses")).find(x => x.id == Resp_ID);
+            if (has_Response) {
+                Resp_col_tb.value = has_Response.response;
+            }
+            Resp_col_tb.id = Resp_ID + "_response_textbox";
+            Resp_col_tb.name = Resp_ID;
+            Resp_col_tb.form = "marks1";
+            Resp_col_div.appendChild(Resp_col_tb);
+            row_part.appendChild(Resp_col_div);
+
+            // add a line to the display
+            var element = document.getElementById("marking_area");
+            element.appendChild(row_part);
+        }
+
+        // adds a bar to the display
+        function add_H_bar() {
+            var row_part = document.createElement("tr");
+            var bar_row_part = document.createElement("td");
+            bar_row_part.setAttribute("colSpan", "3");
+            var bar_row_bar = document.createElement("hr");
+            bar_row_bar.setAttribute("size", "5");
+            bar_row_part.setAttribute("class", "marking_hr_bar");
+            bar_row_part.appendChild(bar_row_bar);
+            row_part.appendChild(bar_row_part);
+
+            var element = document.getElementById("marking_area");
+            element.appendChild(row_part);
+        }
+
+        // responds to a change of a Comment checkbox
+        // by adjustimg the Part mark by the weighting
+        // of the comment.
+        function Comment_button_clicked(calling_control) {
+
+            // add to the marking form
+            calling_control.setAttribute("form", "marksSubmitForm");
+
+debugger;
+            // adjust the value according to the state of the checkbox
+            if (calling_control.checked) {
+                calling_control.value = "1";
+            } else {
+                calling_control.value = "0";
+            }
+
+            // if the comment has weight of 0, do nothing
+            var this_Comment_config = JSON.parse(sessionStorage.getItem("markingForm")).find(x => x.id == calling_control.id);
+            var comment_value = parseFloat(this_Comment_config.field2);
+
+            if (comment_value != 0) {
+                // get the current mark value of the Part
+                // and update it based on whether the checkbox was
+                // check or un-checked.
+
+
+                var part_ID = getThePartID(calling_control);
+                var assocciated_Mark_element = document.getElementById(part_ID + "_mark");       
+                var part_value = parseFloat(assocciated_Mark_element.value);
+                var intermediate_result = 0.0;
+                if (calling_control.checked) { // checked or unchecked
+                    intermediate_result = part_value + comment_value;
+                } else {
+                    intermediate_result = part_value - comment_value;
+                }
+                // write back the new value. Limit checking is done by the Part itself
+                assocciated_Mark_element.value = intermediate_result.toString();
+
+                check_limits(assocciated_Mark_element);
+            }
+        }
+
+        // takes the calling element and returns the ID
+        // of the assocciated part.
+        // splits open the calling ID and replaces 
+        // the comment number with a zero.        
+        function getThePartID(calling_control) {
+
+            var calling_ID = calling_control.id;
+            var split_ID = calling_ID.split("_");
+            var part_ID = split_ID[0].concat("_",
+                split_ID[1], "_",
+                split_ID[2], "_",
+                "0");
+            return part_ID;
+        }
+
+        // extract part-config record
+        // get max mark from that
+        // compare and adjust as required
+        function check_limits(calling_Part) {
+
+            var element = document.getElementById(calling_Part.id);
+            element.setAttribute("form", "marksSubmitForm");
+            //            console.log(element.form);
+
+
+            if (typeof check_limits.Parts_data == 'undefined') {
+                var local_marking_form_configs = JSON.parse(sessionStorage.getItem("markingForm"));
+                check_limits.Parts_data = local_marking_form_configs.filter(function(el) {
+                    return el.PartNumber >= 1 &&
+                        el.CommentNumber == 0;
+                });
+            }
+
+            // get the upper mark limit for this part and the current value
+            var Part_ID = getThePartID(calling_Part);
+            var Part_config_record = check_limits.Parts_data.find(x => x.id == Part_ID);
+            var upper_mark_limit = parseFloat(Part_config_record.field2);
+            var current_mark = parseFloat(calling_Part.value);
+            debugger;
+
+            // test and adjust as required. 
+            if (current_mark > upper_mark_limit) {
+                calling_Part.value = upper_mark_limit.toString();
+            } else if (current_mark < 0) {
+                calling_Part.value = "0";
+            }
+        }
+
+        //        })
+
+    </script>
+
+
+
+
+
+    <!--
+including footer content which is common for all pages
+-->
+    <%- include layouts/footer.ejs %>

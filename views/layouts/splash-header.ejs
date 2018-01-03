@@ -1,0 +1,51 @@
+<html>
+    <head>
+        <title><%= title %></title>
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+    </head>
+    <body background="images/glenn-carstens-peters-203007.jpg">
+	<div >
+        <div class="splash-text" >
+			<h1> <%= title %></h1>	
+			<div >
+				<p >A marking and student feedback tool.</p>
+			</div>
+		</div>
+			<div>		
+				<input id="button-login" class="MyLogin transtart" type="submit" onclick="location.href='http:/Login';"name="users" value="Login" />
+
+			
+        </div>   
+		
+	</div>  
+
+	<script>
+	
+	var myTimer = setInterval(step_button,10);
+
+	
+	
+	
+	function step_button(){
+		// set up a local counter to determine when the fade starts.
+	   if ( typeof step_button.counter == 'undefined' ) { 
+			// It has not... perform the initialization
+			step_button.counter = 0;}
+			
+		// bump the counter and teast for start value.
+		step_button.counter += 1;
+		if (step_button.counter >70){
+			//get the current value of the opacity for the Login button.
+			var myButton = document.getElementById('button-login');
+			var myNum=Number(myButton.style.opacity);
+
+			//bump it up a small bit and write back.
+			myNum +=0.01;
+			myButton.style.opacity = String(myNum);
+			
+			// test it to see if the fade is finished.
+			if (myNum>0.95)
+				{clearInterval(myTimer)};
+		}
+	}
+	</script>

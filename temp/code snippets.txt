@@ -1,0 +1,41 @@
+#contentinfo p { 
+   line-height: 20px;
+   margin: 30px;
+   padding-bottom: 20px; 
+   text-align: justify;
+   width: 140px;
+   color: red; 
+}
+
+<!--<td><div <button type="submit" id="Login_btn_<%= user.role_name %> class="msgBtn" onclick="location.href='http:/<%= user.role_name %>';" ><%= user.role_name %></button></div></td>-->
+
+
+.transtart{
+	opacity:0;
+}
+
+.fadeup{
+	animation-duration: 2s;
+	animation-delay: 2s;
+	animation-name: fadein;
+	animation-fiil-mode:forwards;
+	animation-iteration-count: 1;
+
+}
+
+/* Safari 4.0 - 8.0 */
+@-webkit-keyframes fadein {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Standard syntax */
+@keyframes fadein {
+    from {opacity:0;}
+    to {opacity: 1;}
+}
+
+.MyLogin:hover {
+  opacity: 1;
+
+}
