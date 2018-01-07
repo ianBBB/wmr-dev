@@ -45,7 +45,7 @@ including header content which is common for all pages
             <form action="/marker/getStudentMarks" method="POST">
 
 
-                <select id="M_studSelect" name="M_student_number" ng-model="M_student" onChange="record_selection(M_studSelect,'M_idxStudSelected')" ng-options="Student for Student in StudentList" >
+                <select id="M_studSelect" name="M_student_number" ng-model="M_student" onChange="record_selection(M_studSelect,'M_idxStudSelected')" ng-options="Student for Student in StudentList">
                     <option id="studentSelectMessage" value="" selected="selected">Choose</option>
                 </select>
                 <span><input type="submit"></span>
@@ -62,51 +62,51 @@ including header content which is common for all pages
             </form>
 
         </div>
-        
+
         <!--         add a hide/show Custom Comments button-->
         <div ng-show="student" style="float:left;padding-right:40px">
 
-                <span><input type="buttton">Custom Comments</span>
-            
- 
-        </div>        
-        
-        
-        
-<!--###################################################################-->
-<div id="window" style="position:absolute; z-index:10; left:350px; top:160px; width:400px;background-color:#dde3eb; border:1px solid #464f5a; display:none;">
+            <span><input type="buttton">Custom Comments</span>
 
 
-   <div style="padding-bottom:8px; width:400px; background-color:#718191; border-bottom:1px solid #464f5a;" onMouseDown="beginDrag(this.parentNode, event);"> 
-
-      <div style="position:absolute; top:2px; left:5px; font-size:16px; font-weight:bold; color:#FFFFFF;">Drag me!</div> 
-
-      <div style="position:absolute; top:3px; left:377px; float:right;" onClick="this.parentNode.parentNode.style.display = 'none';"> 
-
-         <img src="How can I create a floating window on my html page.files/close_btn.gif" border="0"/> 
-
-      </div> 
-
-   </div> 
-<br/> 
-   <div style="margin-left:20px;">your content here...</div> 
-
-   <div style="margin-left:30px;">your content here...</div> 
-
-   <div style="margin-left:40px;">your content here...</div> 
-<br/> 
-
-</div>
+        </div>
 
 
-<!--Read more: https://www.webdesign.org/web-programming/javascript/creating-a-floating-window.10895.html#ixzz51tIW9Lcp-->
 
-<!--###################################################################-->
-        
-        
-        
-        
-        
+        <!--###################################################################-->
+        <div id="window" style="position:absolute; z-index:10; left:350px; top:160px; width:400px;background-color:#dde3eb; border:1px solid #464f5a; display:none;">
+
+
+            <div style="padding-bottom:8px; width:400px; background-color:#718191; border-bottom:1px solid #464f5a;" onMouseDown="beginDrag(this.parentNode, event);">
+
+                <div style="position:absolute; top:2px; left:5px; font-size:16px; font-weight:bold; color:#FFFFFF;">Drag me!</div>
+
+                <div style="position:absolute; top:3px; left:377px; float:right;" onClick="this.parentNode.parentNode.style.display = 'none';">
+
+                    <img src="How can I create a floating window on my html page.files/close_btn.gif" border="0" />
+
+                </div>
+
+            </div>
+            <br/>
+            <div style="margin-left:20px;">your content here...</div>
+
+            <div style="margin-left:30px;">your content here...</div>
+
+            <div style="margin-left:40px;">your content here...</div>
+            <br/>
+
+        </div>
+
+
+        <!--Read more: https://www.webdesign.org/web-programming/javascript/creating-a-floating-window.10895.html#ixzz51tIW9Lcp-->
+
+        <!--###################################################################-->
+
+
+
+
+
         <!-- the marking form-->
         <div id="my_marking_form" style="display:none">
             <style>
@@ -135,10 +135,17 @@ including header content which is common for all pages
                 <tr>
                     <table width="100%" style="margin: 0px">
 
-                        <td width="30">All Question status
+                        <td style="background-color:black; vertical-align:top">
+                            <div style="background-color:transparent" height="100%">
+                                <p style="color:white" position="absolute" top="5px" right="5px">
+                                    &#x250F Course Code here.
+                                </p><br>
+                                <p> second line</p>
+                            </div>
                         </td>
                         <td>
                             <div style="overflow-y: scroll; height:400px;">
+                                
                                 <table id="marking_area">
                                 </table>
                             </div>
@@ -333,8 +340,8 @@ including header content which is common for all pages
 
                         break;
                     }
-            
-        }
+
+            }
 
         })
 
@@ -488,9 +495,9 @@ including header content which is common for all pages
             var is_ticked = comments_data.find(x => x.id == Comment_ID);
             if (is_ticked) {
                 C_col_check_box_btn.checked = true;
-                C_col_check_box_btn.value=1;
+                C_col_check_box_btn.value = 1;
             } else {
-                C_col_check_box_btn.value=0;
+                C_col_check_box_btn.value = 0;
             }
             C_col_check_box_btn.onchange = function() {
                 Comment_button_clicked(this)
@@ -666,53 +673,51 @@ including header content which is common for all pages
                 calling_Part.value = "0";
             }
         }
-        
-function beginDrag(elementToDrag, event){
-	var deltaX = event.clientX - parseInt(elementToDrag.style.left);
-	var deltaY = event.clientY - parseInt(elementToDrag.style.top);
-	if (document.addEventListener){
-		document.addEventListener("mousemove", moveHandler, true);
-		document.addEventListener("mouseup", upHandler, true);
-	}
-	else if (document.attachEvent){
-		document.attachEvent("onmousemove", moveHandler);
-		document.attachEvent("onmouseup", upHandler);
-	}
-	else {
-		var oldmovehandler = document.onmousemove;
-		var olduphandler = document.onmouseup;
-		document.onmousemove = moveHandler;
-		document.onmouseup = upHandler;
-	}
-	if (event.stopPropagation) event.stopPropagation();
-	else event.cancelBubble = true;
-	if (event.preventDefault) event.preventDefault();
-	else event.returnValue = false;
-	function moveHandler(e){
-		if (!e) e = window.event;
-		elementToDrag.style.left = (e.clientX - deltaX) + "px";
-		elementToDrag.style.top = (e.clientY - deltaY) + "px";
-		if (e.stopPropagation) e.stopPropagation();
-		else e.cancelBubble = true;
-	}
-	function upHandler(e){
-		if (!e) e = window.event;
-		if (document.removeEventListener){
-			document.removeEventListener("mouseup", upHandler, true);
-			document.removeEventListener("mousemove", moveHandler, true);
-		}
-		else if (document.detachEvent){
-			document.detachEvent("onmouseup", upHandler);
-			document.detachEvent("onmousemove", moveHandler);
-		}
-		else {
-			document.onmouseup = olduphandler;
-			document.onmousemove = oldmovehandler;
-		}
-		if (e.stopPropagation) e.stopPropagation();
-		else e.cancelBubble = true;
-	}
-}        
+
+        function beginDrag(elementToDrag, event) {
+            var deltaX = event.clientX - parseInt(elementToDrag.style.left);
+            var deltaY = event.clientY - parseInt(elementToDrag.style.top);
+            if (document.addEventListener) {
+                document.addEventListener("mousemove", moveHandler, true);
+                document.addEventListener("mouseup", upHandler, true);
+            } else if (document.attachEvent) {
+                document.attachEvent("onmousemove", moveHandler);
+                document.attachEvent("onmouseup", upHandler);
+            } else {
+                var oldmovehandler = document.onmousemove;
+                var olduphandler = document.onmouseup;
+                document.onmousemove = moveHandler;
+                document.onmouseup = upHandler;
+            }
+            if (event.stopPropagation) event.stopPropagation();
+            else event.cancelBubble = true;
+            if (event.preventDefault) event.preventDefault();
+            else event.returnValue = false;
+
+            function moveHandler(e) {
+                if (!e) e = window.event;
+                elementToDrag.style.left = (e.clientX - deltaX) + "px";
+                elementToDrag.style.top = (e.clientY - deltaY) + "px";
+                if (e.stopPropagation) e.stopPropagation();
+                else e.cancelBubble = true;
+            }
+
+            function upHandler(e) {
+                if (!e) e = window.event;
+                if (document.removeEventListener) {
+                    document.removeEventListener("mouseup", upHandler, true);
+                    document.removeEventListener("mousemove", moveHandler, true);
+                } else if (document.detachEvent) {
+                    document.detachEvent("onmouseup", upHandler);
+                    document.detachEvent("onmousemove", moveHandler);
+                } else {
+                    document.onmouseup = olduphandler;
+                    document.onmousemove = oldmovehandler;
+                }
+                if (e.stopPropagation) e.stopPropagation();
+                else e.cancelBubble = true;
+            }
+        }
 
     </script>
 

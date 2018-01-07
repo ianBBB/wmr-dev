@@ -161,7 +161,6 @@ app.post('/getStudentMarks', function (req, res) {
 
     // get a list of students for this assessment.
     req.getConnection(function (error, conn) {
-        var SqlString = {};
 
         // query database for student marks
         conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_0') as id, `ModuleID`,`SectionNumber`,`QuestionNumber`,PartNumber,  Marks FROM part_data where ModuleID like '" + req.session.assessment + "' and studentID = " + req.session.student, function (err, rows) {
