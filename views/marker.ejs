@@ -16,7 +16,6 @@ including header content which is common for all pages
             <form action="/marker/getAssessmentList" method="POST">
 
                 <select id="M_subSelect" name="M_subject_name" ng-model="M_Subject" onChange="record_selection(M_subSelect,'M_idxSubSelected');" ng-options="Subject for Subject in SubjectList">
-<!--                    /'M_subSelect',M_subSelect.selectedIndex-->
                     <option id="subjectSelectMessage" value="" >No list.</option>
 
                 </select>
@@ -83,7 +82,7 @@ including header content which is common for all pages
 
                 <div style="position:absolute; top:3px; left:377px; float:right;" onClick="this.parentNode.parentNode.style.display = 'none';">
 
-                    <img src="How can I create a floating window on my html page.files/close_btn.gif" border="0" />
+                    <!--                    <img src="How can I create a floating window on my html page.files/close_btn.gif" border="0" />-->
 
                 </div>
 
@@ -136,24 +135,50 @@ including header content which is common for all pages
                     <table width="100%" style="margin: 0px">
 
                         <td style="background-color:black; vertical-align:top">
-                            <div style="background-color:transparent" height="100%">
+                            <div id="M_nav" style="background-color:transparent" height="100%">
                                 <p style="color:white" position="absolute" top="5px" right="5px">
                                     &#x250F Course Code here.
                                 </p><br>
                                 <p> second line</p>
+                                <!--                                <button type="button" onclick="scroll_marking_area('QP1_3_2_0_mark')">Click Me!</button>-->
                             </div>
                         </td>
                         <td>
                             <div style="overflow-y: scroll; height:400px;">
-                                
+
                                 <table id="marking_area">
                                 </table>
                             </div>
 
                         </td>
-                    </table>
+                        <!--
+                        <table width="100%">
+
+                            <tr>
+
+                                <td style="margin: 0px; vertical-align:top">
+                                    <div>
+                                                                        <div id="M_nav">
+
+                                        This is the navigation area
+                                        <button type="button" onclick="scoll_marking_area('QP1_3_2_0_mark')">Click Me!</button>
+
+                                    </div>
+                                </td>
+                                <td>
+                                    <div overflow-y="auto" style="height:150px">
+
+                                        <table id="marking_area">
+                                            This is the actual marking form area.
+                                        </table>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        </table>
+-->
                 </tr>
-            </table>
+                </table>
 
         </div>
     </div>
@@ -354,9 +379,12 @@ including header content which is common for all pages
 
         //        this function turns on the marking form.
         function turn_on_marking_form() {
+
+            //set up the marking area ready for to take div that build up the marking form.
             var last_part_displayed = "";
             document.getElementById('my_marking_form').style.display = 'block';
             var form_config = JSON.parse(sessionStorage.getItem("markingForm"));
+
 
             // now add all the marking content
             for (var i = 0, len = form_config.length; i < len; i++) {
@@ -377,6 +405,9 @@ including header content which is common for all pages
                     display_a_comment(form_config[i]);
                 }
             }
+            Nav_init();
+            nav_update_colors(0);
+
         }
 
 
@@ -395,7 +426,7 @@ including header content which is common for all pages
             // first the question number.
             var row_part = document.createElement("tr");
             var Qno_row_part = document.createElement("td");
-            var Qno_row_text = document.createTextNode("Q " + question_data.QuestionNumber);
+            var Qno_row_text = document.createTextNode("Q" + question_data.QuestionNumber);
             Qno_row_part.appendChild(Qno_row_text);
             Qno_row_part.setAttribute("width", "40");
             row_part.appendChild(Qno_row_part);
@@ -412,7 +443,7 @@ including header content which is common for all pages
 
             // add question row to doc
             var element = document.getElementById("marking_area");
-            element.appendChild(row_part); -
+            element.appendChild(row_part);
             add_H_bar();
         }
 
@@ -423,7 +454,7 @@ including header content which is common for all pages
 
             // add the part number
             var Pno_col = document.createElement("td");
-            var Pno_col_text = document.createTextNode("P " + part_data.PartNumber);
+            var Pno_col_text = document.createTextNode("Q" + part_data.QuestionNumber + " P" + part_data.PartNumber);
             Pno_col.appendChild(Pno_col_text);
             row_part.appendChild(Pno_col);
 
@@ -440,14 +471,15 @@ including header content which is common for all pages
             P_col_mark_tb.style.color = "light green";
             var Part_ID = "QP" + part_data.SectionNumber + "_" + part_data.QuestionNumber + "_" + part_data.PartNumber + "_0";
             var Part_config_record = JSON.parse(sessionStorage.getItem("marks")).find(x => x.id == Part_ID);
-            P_col_mark_tb.value = parseFloat(Part_config_record.Marks);
+            if (Part_config_record != undefined) {
+                P_col_mark_tb.value = parseFloat(Part_config_record.Marks);
+            }
             P_col_mark_tb.onchange = function() {
                 check_limits(this)
             };
 
             P_col_mark_tb.id = Part_ID + "_mark";
             P_col_mark_tb.name = Part_ID;
-            //P_col_mark_tb.form="";
             P_col_mark_div.appendChild(P_col_mark_tb);
             P_col_Q.appendChild(P_col_mark_div);
 
@@ -549,6 +581,8 @@ including header content which is common for all pages
             Resp_col_tb.name = Resp_ID;
             Resp_col_tb.onchange = function() {
                 this.setAttribute("form", "marksSubmitForm");
+                var id_parts = Resp_ID.split("_");
+                nav_update_colors(id_parts[1]);
             };
             Resp_col_tb.form = "marks1";
             Resp_col_div.appendChild(Resp_col_tb);
@@ -574,6 +608,7 @@ including header content which is common for all pages
             element.appendChild(row_part);
         }
 
+
         // responds to a change of a Comment checkbox
         // by adjustimg the Part mark by the weighting
         // of the comment.
@@ -586,31 +621,29 @@ including header content which is common for all pages
                 calling_control.value = "0";
             }
 
-            // if the comment has weight of 0, do nothing
-            // first get the config record for this element, then its value.
+            // first get the Part ID for this element.
+            var part_ID = getThePartID(calling_control);
+
             var this_Comment_config = JSON.parse(sessionStorage.getItem("markingForm")).find(x => x.id == getThisID(calling_control));
             var comment_value = parseFloat(this_Comment_config.field2);
 
-            if (comment_value != 0) {
-                // get the current mark value of the Part
-                // and update it based on whether the checkbox was
-                // check or un-checked.
 
+            var assocciated_Mark_element = document.getElementById(part_ID + "_mark");
+            var part_value = parseFloat(assocciated_Mark_element.value);
+            var intermediate_result = 0.0;
 
-                var part_ID = getThePartID(calling_control);
-                var assocciated_Mark_element = document.getElementById(part_ID + "_mark");
-                var part_value = parseFloat(assocciated_Mark_element.value);
-                var intermediate_result = 0.0;
-                if (calling_control.checked) { // checked or unchecked
-                    intermediate_result = part_value + comment_value;
-                } else {
-                    intermediate_result = part_value - comment_value;
-                }
-                // write back the new value. Limit checking is done by the Part itself
-                assocciated_Mark_element.value = intermediate_result.toString();
-
-                check_limits(assocciated_Mark_element);
+            // get the current mark value of the Part
+            // and update it based on whether the checkbox was
+            // check or un-checked.
+            if (calling_control.checked) { // checked or unchecked
+                intermediate_result = part_value + comment_value;
+            } else {
+                intermediate_result = part_value - comment_value;
             }
+            // write back the new value. Limit checking is done by the Part itself
+            assocciated_Mark_element.value = intermediate_result.toString();
+
+            check_limits(assocciated_Mark_element);
         }
 
         // takes the calling element and returns the ID
@@ -664,7 +697,7 @@ including header content which is common for all pages
             var Part_config_record = check_limits.Parts_data.find(x => x.id == Part_ID);
             var upper_mark_limit = parseFloat(Part_config_record.field2);
             var current_mark = parseFloat(calling_Part.value);
-            debugger;
+
 
             // test and adjust as required. 
             if (current_mark > upper_mark_limit) {
@@ -672,6 +705,10 @@ including header content which is common for all pages
             } else if (current_mark < 0) {
                 calling_Part.value = "0";
             }
+
+            // update the colours in the nav area.
+            var split_ID = calling_Part.id.split("_");
+            nav_update_colors(split_ID[1]);
         }
 
         function beginDrag(elementToDrag, event) {
@@ -717,6 +754,210 @@ including header content which is common for all pages
                 if (e.stopPropagation) e.stopPropagation();
                 else e.cancelBubble = true;
             }
+
+
+
+        }
+
+        function Nav_init() {
+            // now add all the marking content
+
+
+            // collect the list of marking elements fro local storage
+            var form_config = JSON.parse(sessionStorage.getItem("markingForm"));
+
+
+
+            // go through the form and add the Qs and Ps to the nav area
+            for (var i = 0; i < form_config.length; i++) {
+                // test to see what is in this row (question, part, comment, etc)
+                if (form_config[i].PartNumber == 0) {
+                    // this is a question row. put it in the display
+                    nav_add_Q(form_config[i].QuestionNumber)
+                } else if (form_config[i].CommentNumber == 0) {
+                    // this is a part row. put it in the display
+                    nav_add_P(form_config[i].QuestionNumber, form_config[i].PartNumber, );
+
+                } else if (form_config[i].CommentNumber == 99) {
+                    // this is a response row. put it in the display
+                    // do nothing for now
+                } else {
+                    // this is a comment row. put it in the display
+                    // do nothing for now
+                }
+            }
+
+            //call an update function here
+        }
+
+        // takes data for a questions and builds it in the form
+        function nav_add_Q(Q_no) {
+
+            // adds an entry for a question into the first level of the nav area.
+
+            // find the nav area.
+            var nav_area = document.getElementById("M_nav");
+
+            //create the entry and set its parameters
+            var m1 = document.createElement("div");
+            m1.className = 'dropdown';
+            m1.id = "nav_Q" + Q_no + "_P0";
+
+            // create the text and add.
+            var textSpan = document.createElement('span');
+            textSpan.innerHTML = "Q" + Q_no + " ";
+            m1.appendChild(textSpan);
+
+            // create a div space for the Part entries for this question.
+            var drop_down_div = document.createElement("div");
+            drop_down_div.className = 'dropdown-content';
+            drop_down_div.id = "nav_Q" + Q_no + "_Ps";
+            m1.appendChild(drop_down_div);
+
+            // add the the nav area
+            nav_area.appendChild(m1);
+        }
+
+
+        function nav_add_P(Q_no, P_no) {
+            //Adds an entry for a part into a dropdown in the nav area
+
+            //get the right Question sub-menu
+            var nav_Q_Parts = document.getElementById("nav_Q" + Q_no + "_Ps");
+
+            // create the entry
+            var drop_down_text = document.createElement("P");
+            drop_down_text.class="dropdown";
+            drop_down_text.innerHTML = "Q" + Q_no + " P" + P_no;
+            drop_down_text.style = "background-color:black";
+            var link_id = "scroll_marking_area(QP1_" + Q_no + "_" + P_no + "_0_mark)";
+            drop_down_text.setAttribute("onclick", "scroll_marking_area('QP1_" + Q_no + "_" + P_no + "_0_mark')");
+            drop_down_text.id = "nav_Q" + Q_no + "_P" + P_no;
+
+
+            // add it into the div for that question.
+            nav_Q_Parts.appendChild(drop_down_text);
+
+        }
+
+
+        function nav_update_colors(Q_no) {
+            //
+            // updates colors for all nav entries or for a particular part/question.
+
+            // set up vars
+            var marking_form = JSON.parse(sessionStorage.getItem("markingForm"));
+            var list_of_Qs = [];
+            var p_status = "green";
+            var q_status = "green";
+
+            //test Q_no. if == 0 then update everything otherwise update specific Q/N pair.
+            if (Q_no == 0) {
+                // update the whole nav area colors.
+
+                // first collect all the questions
+                list_of_Qs = marking_form.filter(function(el) {
+                    return el.PartNumber == 0
+                });
+
+
+            } else {
+                // Q_no has a specific value. Use this;
+                list_of_Qs.push(marking_form.find(x => ((x.QuestionNumber == Q_no) && (x.PartNumber == 0))));
+            }
+
+            //loop through the questions list and process.
+            for (var i = 0; i < list_of_Qs.length; i++) {
+
+                q_status = "green";
+
+                // now get a list of parts for this question.
+                list_of_Ps = marking_form.filter(function(el) {
+                    return ((el.CommentNumber == 0) && (el.QuestionNumber == list_of_Qs[i].QuestionNumber))
+                });
+
+                // test each part has a mark. if no mark,
+                // then set to red. if mark present, test for a comment or response
+                for (var index1 = 1; index1 < list_of_Ps.length; index1++) {
+
+
+                    // get the element, then its value
+                    var p_mark_element = document.getElementById(
+                        list_of_Ps[index1].id + "_mark");
+                    var p_mark = p_mark_element.value;
+
+                    //test the value. Empty? then set part status to red.
+                    if (p_mark == "") {
+                        p_status = "red";
+
+                    } else {
+
+                        // there is a mark. Now test if there is a comment or response.
+                        // make a list of all comments and responses.
+                        list_of_Cs = marking_form.filter(function(el) {
+                            return ((el.PartNumber == list_of_Ps[index1].PartNumber) && (el.QuestionNumber == list_of_Qs[i].QuestionNumber))
+                        });
+
+                        // set a default value for the status of the part.
+                        p_status = "orange";
+
+                        // test each comment to find one that is set. if found, set part
+                        // status to green. if none,
+                        // then test the response.
+                        for (var index2 = 1; index2 < list_of_Cs.length; index2++) {
+
+
+                            // are we checking a comment or a response?
+                            if (list_of_Cs[index2].CommentNumber == 99) {
+                                // this is a response
+                                if (document.getElementById(list_of_Cs[index2].id + "_response_textbox").value != "") {
+                                    p_status = "green";
+                                }
+
+                            } else {
+                                if (list_of_Cs[index2].CommentNumber < 99) {
+                                    // this is a comment
+                                    if (document.getElementById(list_of_Cs[index2].id + "_comment_check_box").checked) {
+                                        p_status = "green";
+                                    }
+
+                                }
+                            }
+
+                        }
+
+                    }
+
+                    // set the colour for this part
+                    document.getElementById("nav_Q" +
+                        list_of_Ps[index1].QuestionNumber +
+                        "_P" +
+                        list_of_Ps[index1].PartNumber).style.color = p_status;
+
+                    // adjust the question status based on results for this part.
+                    if (p_status == "red") {
+                        q_status = "red"
+                    } else {
+                        if (q_status == "green") {
+                            q_status = p_status
+                        }
+                    }
+
+                    // set the nav question colour
+                    document.getElementById("nav_Q" +
+                        list_of_Qs[i].QuestionNumber +
+                        "_P0").style.color = q_status;
+
+                }
+
+            }
+        }
+
+        function scroll_marking_area(QP_destination) {
+            // scrolls the marking area to the question and part provided.
+
+            document.getElementById(QP_destination).scrollIntoView()
+
         }
 
     </script>

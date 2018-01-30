@@ -206,7 +206,7 @@ app.post('/submitMarks', function (req, res) {
     req.session.stage = '5';
     req.session.new_marks = req.body;
     var new_marks = req.session.new_marks
-//    console.log(new_marks);
+    console.log(new_marks);
 //    console.log(req.session.assessment);
     
 
