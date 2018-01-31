@@ -62,13 +62,15 @@ including header content which is common for all pages
 
         </div>
 
-        <!--         add a hide/show Custom Comments button-->
+<!--
+                 add a hide/show Custom Comments button
         <div ng-show="student" style="float:left;padding-right:40px">
 
             <span><input type="buttton">Custom Comments</span>
 
 
         </div>
+-->
 
 
 
@@ -827,7 +829,7 @@ including header content which is common for all pages
 
             // create the entry
             var drop_down_text = document.createElement("P");
-            drop_down_text.class="dropdown";
+            drop_down_text.class = "dropdown";
             drop_down_text.innerHTML = "Q" + Q_no + " P" + P_no;
             drop_down_text.style = "background-color:black";
             var link_id = "scroll_marking_area(QP1_" + Q_no + "_" + P_no + "_0_mark)";
