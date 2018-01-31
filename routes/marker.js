@@ -15,7 +15,6 @@ app.get('/', function (req, res) {
 
     // Stage 1 - get a list of subjects for this user from the db
     req.getConnection(function (error, conn) {
-        var SqlString = {};
         conn.query("SELECT SubjectID FROM access_privileges where LoginName='" + req.session.user + "' order by SubjectID", function (err, rows) {
             if (err) throw err
 
@@ -239,20 +238,27 @@ app.post('/submitMarks', function (req, res) {
     }
 
     // send a response
-//    req.session.stage = '6';
-//    res.render('marker', {
-//        title: 'Marking',
-//        Stage: req.session.stage,
-//        SubjectList: 0,
-//        AssessmentList: 0,
-//        StudentList: 0,
-//        MarkingForm: 0,
-//        Marks: 0,
-//        Comments: 0,
-//        Responses: 0
-//    })
+    req.getConnection(function (error, conn) {
 
+        // save the data in a session var
+        req.session.subjects = 0;
+
+        // send the data off to the user.
+        res.render('marker', {
+            title: 'Marking',
+            Stage: req.session.stage,
+            SubjectList: 0,
+            AssessmentList: 0,
+            StudentList: 0,
+            MarkingForm: 0,
+            Marks: 0,
+            Comments: 0,
+            Responses: 0
+        })
+
+    })
 })
+
 
 function save_mark_data(req, query_type, field1, field2, field3, field4) {
 
