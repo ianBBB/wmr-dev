@@ -47,7 +47,7 @@ including header content which is common for all pages
                 <select id="M_studSelect" name="M_student_number" ng-model="M_student" onChange="record_selection(M_studSelect,'M_idxStudSelected')" ng-options="Student for Student in StudentList">
                     <option id="studentSelectMessage" value="" selected="selected">Choose</option>
                 </select>
-                <span><input type="submit"></span>
+                <span><input type="submit" id="M_submit_button_select_student"></span>
             </form>
         </div>
 
@@ -57,18 +57,20 @@ including header content which is common for all pages
             <p>Submit Marks</p>
             <form action="/marker/submitMarks" method="POST" id="marksSubmitForm">
 
-                <span><input type="submit"></span>
+                <span><input type="submit" ></span>
             </form>
 
         </div>
 
-        <!--         add a hide/show Custom Comments button-->
+<!--
+                 add a hide/show Custom Comments button
         <div ng-show="student" style="float:left;padding-right:40px">
 
             <span><input type="buttton">Custom Comments</span>
 
 
         </div>
+-->
 
 
 
@@ -364,6 +366,11 @@ including header content which is common for all pages
                         $scope.marking_form = true;
 
                         break;
+                    }
+                    case (5):
+                    {alert("Marks saved.");
+                     document.getElementById("M_submit_button_select_student").click;
+
                     }
 
             }
@@ -827,7 +834,7 @@ including header content which is common for all pages
 
             // create the entry
             var drop_down_text = document.createElement("P");
-            drop_down_text.class="dropdown";
+            drop_down_text.class = "dropdown";
             drop_down_text.innerHTML = "Q" + Q_no + " P" + P_no;
             drop_down_text.style = "background-color:black";
             var link_id = "scroll_marking_area(QP1_" + Q_no + "_" + P_no + "_0_mark)";
