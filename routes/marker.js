@@ -268,9 +268,9 @@ function save_mark_data(req, query_type, field1, field2, field3, field4) {
 
         switch (query_type) {
             case 1:
-                //                console.log("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '");
+//                                console.log("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'");
                 // save typed response to the response table.
-                conn.query("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'", function (err, rows) {
+                conn.query("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + ",'" + req.session.student + "','" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'", function (err, rows) {
                     if (err) throw err
                 })
                 break;

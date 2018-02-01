@@ -47,7 +47,7 @@ including header content which is common for all pages
                 <select id="M_studSelect" name="M_student_number" ng-model="M_student" onChange="record_selection(M_studSelect,'M_idxStudSelected')" ng-options="Student for Student in StudentList">
                     <option id="studentSelectMessage" value="" selected="selected">Choose</option>
                 </select>
-                <span><input type="submit"></span>
+                <span><input type="submit" id="M_submit_button_select_student"></span>
             </form>
         </div>
 
@@ -57,7 +57,7 @@ including header content which is common for all pages
             <p>Submit Marks</p>
             <form action="/marker/submitMarks" method="POST" id="marksSubmitForm">
 
-                <span><input type="submit"></span>
+                <span><input type="submit" ></span>
             </form>
 
         </div>
@@ -368,7 +368,10 @@ including header content which is common for all pages
                         break;
                     }
                     case (5):
-                    {alert("Marks saved.");}
+                    {alert("Marks saved.");
+                     document.getElementById("M_submit_button_select_student").click;
+
+                    }
 
             }
 
