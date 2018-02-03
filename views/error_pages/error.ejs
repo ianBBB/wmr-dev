@@ -2,3 +2,16 @@ select decision_question.id, decision_question.title as question, user_decision_
 right join user_decision_answer on decision_question.id = user_decision_answer.question_id
 group by decision_question.id, question, user_decision_answer.answer
 order by user_decision_answer.question_id
+
+
+OUADataComms_2017_SP1_A_1
+23
+OUADataComms_2017_SP1_A_2
+13
+OUAIntroCompSysPlat_2016_SP4_A_2
+23
+undefined
+1
+3204085
+
+SELECT `SubjectID` FROM `modules` M WHERE exists (select * from part_data where ModuleID = M.ModuleID)

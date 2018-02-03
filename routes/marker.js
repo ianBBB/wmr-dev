@@ -14,12 +14,19 @@ app.get('/', function (req, res) {
 
 
     // Stage 1 - get a list of subjects for this user from the db
+
+    // This is the basis of a user-based query to offer only the subjects
+    // that the user has approval to access. Stored here to come back to
+    // later.
+//    "SELECT SubjectID FROM access_privileges where LoginName='" + req.session.user + "' order by SubjectID"
+
+    // for now, offer all subjects that have marking data.
     req.getConnection(function (error, conn) {
-        var SqlString = {};
-        conn.query("SELECT SubjectID FROM access_privileges where LoginName='" + req.session.user + "' order by SubjectID", function (err, rows) {
+        conn.query("SELECT distinct(SubjectID) FROM `modules` M WHERE exists (select * from part_data where ModuleID = M.ModuleID)", function (err, rows) {
             if (err) throw err
 
-            // save the data in a session var
+            // extract moduleID data and save in a session var
+//            var result = rows.map(a => a.ModuleID);
             req.session.subjects = rows;
 
             // send the data off to the user.
@@ -158,25 +165,26 @@ app.post('/getStudentMarks', function (req, res) {
     req.session.stage = '4';
     var assessment = req.sanitize('M_student_number').escape().trim();
     req.session.student = assessment.split(":")[1];
+    console.log(req.session.student);
 
     // get a list of students for this assessment.
     req.getConnection(function (error, conn) {
 
         // query database for student marks
-        conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_0') as id, `ModuleID`,`SectionNumber`,`QuestionNumber`,PartNumber,  Marks FROM part_data where ModuleID like '" + req.session.assessment + "' and studentID = " + req.session.student, function (err, rows) {
+        conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_0') as id, `ModuleID`,`SectionNumber`,`QuestionNumber`,PartNumber,  Marks FROM part_data where ModuleID like '" + req.session.assessment + "' and studentID like '" + req.session.student + "'", function (err, rows) {
             if (err) throw err
 
             req.session.Marks = rows;
 
 
             // query database for student comments
-            conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_',CommentNumber) as id, Comment FROM comment_data where ModuleID like '" + req.session.assessment + "' and studentID = " + req.session.student, function (err, rows) {
+            conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_',CommentNumber) as id, Comment FROM comment_data where ModuleID like '" + req.session.assessment + "' and studentID like '" + req.session.student + "'", function (err, rows) {
                 if (err) throw err
 
                 req.session.Comments = rows;
 
                 // query database for student comments
-                conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_99') as id, response FROM response_data where ModuleID like '" + req.session.assessment + "' and studentID = " + req.session.student, function (err, rows) {
+                conn.query("SELECT concat('QP' ,SectionNumber,'_',QuestionNumber,'_',PartNumber,'_99') as id, response FROM response_data where ModuleID like '" + req.session.assessment + "' and studentID like '" + req.session.student + "'", function (err, rows) {
                     if (err) throw err
 
                     req.session.Responses = rows;
@@ -207,8 +215,8 @@ app.post('/submitMarks', function (req, res) {
     req.session.new_marks = req.body;
     var new_marks = req.session.new_marks
     console.log(new_marks);
-//    console.log(req.session.assessment);
-    
+    //    console.log(req.session.assessment);
+
 
     // now add all the marking content
     for (i in new_marks) {
@@ -218,7 +226,7 @@ app.post('/submitMarks', function (req, res) {
         var QuestionNumber = extracted_Q_data[1];
         var PartNumber = extracted_Q_data[2];
         var CommentNumber = extracted_Q_data[3];
-console.log(req.session.assessment);
+        console.log(req.session.assessment);
         // test to see what is in this row (question, part, comment, etc)
         // then execute the appropriate SQL for it by calling save_mark_data.
         if (CommentNumber == 99) {
@@ -237,45 +245,75 @@ console.log(req.session.assessment);
         }
     }
 
+    console.log("note b4 sending");
+
+    // send a response
+    req.getConnection(function (error, conn) {
+
+        // save the data in a session var
+        req.session.subjects = 0;
+
+        // send the data off to the user.
+        res.render('marker', {
+            title: 'Marking',
+            Stage: req.session.stage,
+            SubjectList: 0,
+            AssessmentList: 0,
+            StudentList: 0,
+            MarkingForm: 0,
+            Marks: 0,
+            Comments: 0,
+            Responses: 0
+        })
+
+    })
 })
+
 
 function save_mark_data(req, query_type, field1, field2, field3, field4) {
 
-//console.log(req, query_type, field1, field2, field3, field4);
+    //console.log(req, query_type, field1, field2, field3, field4);
     // select which query to execute.
     req.getConnection(function (error, conn) {
 
         switch (query_type) {
             case 1:
-//                console.log("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '");
+//                                console.log("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'");
                 // save typed response to the response table.
-                conn.query("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'", function (err, rows) {
+                conn.query("INSERT INTO response_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Response) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + ",'" + req.session.student + "','" + field4 + "') ON DUPLICATE KEY UPDATE Response = '" + field4 + "'", function (err, rows) {
                     if (err) throw err
                 })
                 break;
 
             case 2:
-//                console.log("INSERT INTO part_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Marks) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Marks = '" + field4 + "'");
                 // save Part marks to the part_data table.
-                conn.query("INSERT INTO part_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Marks) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + req.session.student + ",'" + field4 + "') ON DUPLICATE KEY UPDATE Marks = '" + field4 + "'", function (err, rows) {
-                    if (err) throw err
-                })
+                // first test the mark field. if blank , delete the record.
+                if (field4 == "") {
+                    // mark field is blank. remove record.
+                    conn.query("DELETE FROM part_data WHERE (ModuleID ='" + req.session.assessment + "') AND (SectionNumber=1) AND (QuestionNumber=" + field1 + ") AND (PartNumber=" + field2 + ") AND (StudentID like '" + req.session.student + "')", function (err, rows) {
+                        if (err) throw err
+                    })
+                } else {
+                    conn.query("INSERT INTO part_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,StudentID, Marks) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + ",'" + req.session.student + "','" + field4 + "') ON DUPLICATE KEY UPDATE Marks = '" + field4 + "'", function (err, rows) {
+                        if (err) throw err
+                    })
+                }
                 break;
 
             case 3:
                 // first delete all comments for this student for this assignment.
                 //                console.log("DELETE FROM comment_data WHERE (ModuleID ='"+ req.session.assessment + "') AND (StudentID='"+ req.session.student + "')");
                 if (typeof (comments_deletes) == 'undefined') {
-                    conn.query("DELETE FROM comment_data WHERE (ModuleID ='" + req.session.assessment + "') AND (StudentID='" + req.session.student + "')", function (err, rows) {
+                    conn.query("DELETE FROM comment_data WHERE (ModuleID ='" + req.session.assessment + "') AND (StudentID like '" + req.session.student + "')", function (err, rows) {
                         if (err) throw err
                     });
                     comments_deletes = 1;
                     console.log("comments wiped");
                 };
-                
-//                console.log("INSERT INTO comment_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,CommentNumber, StudentID, Comment) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," +  field3 + "," +req.session.student + "," + field4 + ") ON DUPLICATE KEY UPDATE Comment = " + field4);
+
+                //                console.log("INSERT INTO comment_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,CommentNumber, StudentID, Comment) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," +  field3 + "," +req.session.student + "," + field4 + ") ON DUPLICATE KEY UPDATE Comment = " + field4);
                 // save comment states to the comment_data table.
-                conn.query("INSERT INTO comment_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,CommentNumber, StudentID, Comment) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," +  field3 + "," +req.session.student + "," + field4 + ") ON DUPLICATE KEY UPDATE Comment = " + field4, function (err, rows) {
+                conn.query("INSERT INTO comment_data (ModuleID, SectionNumber, QuestionNumber, PartNumber,CommentNumber, StudentID, Comment) VALUES ('" + req.session.assessment + "',1," + field1 + "," + field2 + "," + field3 + ",'" + req.session.student + "'," + field4 + ") ON DUPLICATE KEY UPDATE Comment = " + field4, function (err, rows) {
                     if (err) throw err
                 })
                 break;
