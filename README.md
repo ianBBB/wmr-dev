@@ -1,7 +1,7 @@
 # wmr-dev
 Development of a modernised version of the old WebMark : WebMark Regenisis.
 
-The motivation for this work comes from several quarters. 
+The motivation for this work comes from several quarters; 
 @ The previous WebMark was written in very old versions of PHP, Javascript and HTML. It is so old, it preceeded CSS. Updating was in order.
 @ There were a number of limitations and strange bugs with the original WebMark.
 @ There was a number improvements that have been suggested but were not implemented as the system was no longer supported.
