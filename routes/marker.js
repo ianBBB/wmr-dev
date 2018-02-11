@@ -22,7 +22,9 @@ app.get('/', function (req, res) {
 
     // for now, offer all subjects that have marking data.
     req.getConnection(function (error, conn) {
+
         conn.query("SELECT distinct(SubjectID) FROM `modules` M WHERE exists (select * from part_data where ModuleID = M.ModuleID)", function (err, rows) {
+
             if (err) throw err
 
             // extract moduleID data and save in a session var
@@ -244,8 +246,6 @@ app.post('/submitMarks', function (req, res) {
             save_mark_data(req, 3, QuestionNumber, PartNumber, CommentNumber, new_marks[i]);
         }
     }
-
-    console.log("note b4 sending");
 
     // send a response
     req.getConnection(function (error, conn) {
